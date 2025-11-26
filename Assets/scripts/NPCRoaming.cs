@@ -8,6 +8,7 @@ public class NPCRoaming : MonoBehaviour
     public NavMeshAgent agent;
     public Transform model;
     public Transform player;
+    public Transform cameraScarePoint; // Empty in front of ghost
 
     [Header("Waypoints")]
     public Transform[] waypoints;
@@ -18,72 +19,78 @@ public class NPCRoaming : MonoBehaviour
     public Vector3 modelForwardOffset = Vector3.zero;
 
     [Header("Player Detection")]
-    public float detectionDistance = 15f; // Detect player if closer than 15 units
-    public float maxFollowDistance = 20f; // Stop following if player goes beyond this
+    public float detectionDistance = 15f;
+    public float maxFollowDistance = 20f;
+
+    [Header("Close Range Scare Detection")]
+    public float scareDistance = 2f;
+    public bool alreadyTriggeredScare = false;
 
     [Header("Flying Settings")]
-public float hoverHeight = 0.2f;     // Base hover above ground
-public float hoverAmplitude = 0.8f;  // Slight floating (optional)
-public float hoverFrequency = 1f;     // Floating speed
+    public float hoverHeight = 0.2f;
+    public float hoverAmplitude = 0.8f;
+    public float hoverFrequency = 1f;
 
     public bool followingPlayer = false;
     private List<Transform> originalWaypoints = new List<Transform>();
     private int currentWaypointIndex = -1;
 
-    private void Start()
+    void Start()
     {
-        if (agent == null)
-            agent = GetComponent<NavMeshAgent>();
-
-        if (model == null)
-            Debug.LogError("Assign your model (child object) to the script!");
-
+        if (agent == null) agent = GetComponent<NavMeshAgent>();
         modelForwardOffset = new Vector3(-90f, 0f, 90f);
         model.localRotation = Quaternion.Euler(modelForwardOffset);
-
-        // Save original waypoints
         originalWaypoints.AddRange(waypoints);
 
-        // Find player if not assigned
         if (player == null)
         {
             GameObject playerObj = GameObject.FindWithTag("Player");
-            if (playerObj != null)
-                player = playerObj.transform;
+            if (playerObj != null) player = playerObj.transform;
         }
 
         GoToNextWaypoint();
     }
 
-    private void Update()
+    void Update()
     {
         if (player != null)
         {
             float distance = Vector3.Distance(transform.position, player.position);
-
-            // Follow player only if within detection AND max follow distance
             followingPlayer = distance <= detectionDistance && distance <= maxFollowDistance;
         }
 
         if (followingPlayer && player != null)
-        {
             agent.SetDestination(player.position);
-        }
-        else
-        {
-            if (!agent.pathPending && agent.remainingDistance < waypointThreshold)
-                GoToNextWaypoint();
-        }
+        else if (!agent.pathPending && agent.remainingDistance < waypointThreshold)
+            GoToNextWaypoint();
 
+        CheckCloseDetection();
         HoverMotion();
         RotateBody();
         RotateModel();
     }
 
+    private void CheckCloseDetection()
+    {
+        if (player == null || alreadyTriggeredScare) return;
+
+        float dist = Vector3.Distance(transform.position, player.position);
+        if (dist <= scareDistance)
+        {
+            alreadyTriggeredScare = true;
+            agent.isStopped = true;
+            transform.LookAt(player);
+
+            // Move camera to the scare point
+            GhostCameraController.Instance.MoveCameraToPoint(cameraScarePoint, 1f);
+        }
+
+    }
+
+
     private void GoToNextWaypoint()
     {
         if (originalWaypoints.Count == 0) return;
-
         currentWaypointIndex = Random.Range(0, originalWaypoints.Count);
         agent.SetDestination(originalWaypoints[currentWaypointIndex].position);
     }
@@ -92,7 +99,6 @@ public float hoverFrequency = 1f;     // Floating speed
     {
         Vector3 velocity = agent.velocity;
         velocity.y = 0;
-
         if (velocity.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(velocity);
@@ -107,20 +113,14 @@ public float hoverFrequency = 1f;     // Floating speed
     }
 
     private void HoverMotion()
-{
-    // Always hover just above ground
-    float baseY = agent.nextPosition.y; // ground height from NavMeshAgent
-    float hoverOffset = Mathf.Sin(Time.time * hoverFrequency) * hoverAmplitude;
-
-    // Limit hover so ghost stays 0.1 - 0.2 units above ground
-    float minHover = 0.1f;
-    float maxHover = 0.2f;
-    float finalHover = Mathf.Clamp(hoverHeight + hoverOffset, minHover, maxHover);
-
-    Vector3 pos = transform.position;
-    pos.y = baseY + finalHover;
-    transform.position = pos;
-}
-
-
+    {
+        float baseY = agent.nextPosition.y;
+        float hoverOffset = Mathf.Sin(Time.time * hoverFrequency) * hoverAmplitude;
+        float minHover = 0.1f;
+        float maxHover = 0.2f;
+        float finalHover = Mathf.Clamp(hoverHeight + hoverOffset, minHover, maxHover);
+        Vector3 pos = transform.position;
+        pos.y = baseY + finalHover;
+        transform.position = pos;
+    }
 }

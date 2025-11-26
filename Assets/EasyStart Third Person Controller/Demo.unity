@@ -1506,6 +1506,12 @@ MonoBehaviour:
   modelForwardOffset: {x: 0, y: 0, z: 0}
   detectionDistance: 15
   maxFollowDistance: 10
+  scareDistance: 2
+  alreadyTriggeredScare: 0
+  hoverHeight: 0.2
+  hoverAmplitude: 0.8
+  hoverFrequency: 1
+  followingPlayer: 0
 --- !u!195 &315135931
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -4216,6 +4222,25 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 909166860}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &926543609 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1011312494259777056, guid: 0090731b51e488b43a6a7307adf4cfef, type: 3}
+  m_PrefabInstance: {fileID: 7504655383515896013}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &926543610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 926543609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359c179051db0e443aeb8851af114bed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraTransform: {fileID: 1959590933}
+  lookSpeed: 5
 --- !u!1 &959481857
 GameObject:
   m_ObjectHideFlags: 0
@@ -6519,6 +6544,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &1959590933 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9030538853541958529, guid: 0090731b51e488b43a6a7307adf4cfef, type: 3}
+  m_PrefabInstance: {fileID: 7504655383515896013}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2045845790
 GameObject:
   m_ObjectHideFlags: 0
@@ -6727,6 +6757,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1011312494259777056, guid: 0090731b51e488b43a6a7307adf4cfef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 926543610}
     - targetCorrespondingSourceObject: {fileID: 7815172744516068119, guid: 0090731b51e488b43a6a7307adf4cfef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1959590932}
