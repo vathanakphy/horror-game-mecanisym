@@ -55,14 +55,28 @@ public class NPCRoaming : MonoBehaviour
     {
         if (player != null)
         {
-            float distance = Vector3.Distance(transform.position, player.position);
-            followingPlayer = distance <= detectionDistance && distance <= maxFollowDistance;
+            if (HideBox.IsPlayerHiddenAnywhere())
+            {
+                followingPlayer = false;
+            }
+            else
+            {
+                Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
+                Vector3 npcPosFlat = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+                float distance = Vector3.Distance(npcPosFlat, playerPosFlat);
+
+                followingPlayer = distance <= detectionDistance && distance <= maxFollowDistance;
+            }
         }
 
         if (followingPlayer && player != null)
+        {
             agent.SetDestination(player.position);
+        }
         else if (!agent.pathPending && agent.remainingDistance < waypointThreshold)
+        {
             GoToNextWaypoint();
+        }
 
         CheckCloseDetection();
         HoverMotion();
@@ -70,21 +84,26 @@ public class NPCRoaming : MonoBehaviour
         RotateModel();
     }
 
+
     private void CheckCloseDetection()
     {
         if (player == null || alreadyTriggeredScare) return;
 
-        float dist = Vector3.Distance(transform.position, player.position);
+        // Stop scary behavior if player is hidden
+        if (HideBox.IsPlayerHiddenAnywhere()) return;
+
+        Vector3 playerPosFlat = new Vector3(player.position.x, transform.position.y, player.position.z);
+        Vector3 npcPosFlat = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        float dist = Vector3.Distance(npcPosFlat, playerPosFlat);
+
         if (dist <= scareDistance)
         {
             alreadyTriggeredScare = true;
             agent.isStopped = true;
             transform.LookAt(player);
 
-            // Move camera to the scare point
             GhostCameraController.Instance.MoveCameraToPoint(cameraScarePoint, 1f);
         }
-
     }
 
 
